@@ -19,7 +19,7 @@ module.exports = class Database {
    * @returns {Promise<Query<UpdateResult, any, {}, any>>}
    */
   async createUser(aniListUserID, discordUserID) {
-    return user.updateOne({id: aniListUserID, discordID: discordUserID}, {id: aniListUserID, discordID: discordUserID})
+    return user.updateOne({id: aniListUserID, discordID: discordUserID}, {id: aniListUserID, discordID: discordUserID}, {upsert: true})
   }
 
   /**
