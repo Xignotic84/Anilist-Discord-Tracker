@@ -1,0 +1,14 @@
+{
+  "anilist": {
+    "api_url": "https://graphql.anilist.co/",
+    "activityFetchInterval": "60 seconds"
+  },
+  "discord": {
+    "client_token": "",
+    "activity_channel_id": "",
+    "prefix": ""
+  },
+  "redis": {
+    "activities_key": "postedActivities"
+  }
+}

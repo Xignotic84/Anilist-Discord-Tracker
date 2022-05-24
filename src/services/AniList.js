@@ -1,0 +1,143 @@
+const fetch = require('node-fetch')
+const config = require('./../../config.json')
+const ms = require('ms')
+const apiQueries = require('./../apiQueries')
+const redis = require('./Redis')
+
+/**
+ * AniList API service
+ * @type {AniList}
+ */
+module.exports = class AniList {
+  constructor(client, database) {
+    setInterval(async () => {
+      const users = await database.getUsers()
+
+      users.map(async user => {
+        const watchActivity = await this.getUserWatchActivity(user.id)
+
+        const processedActivity = await this.processWatchActivity(user.id, watchActivity.activities)
+
+        if (!processedActivity[0]) return
+
+        client.channels.cache.get(config.discord.activity_channel_id).send({embeds: processedActivity})
+      })
+
+    }, ms(config.anilist.activityFetchInterval))
+  }
+
+
+  /**
+   * Send post request to anilist API
+   * @param body
+   * @returns {Promise<*|Promise<Response>>}
+   */
+  async makeRequest(body) {
+    return fetch(config.anilist.api_url, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: body
+    })
+  }
+
+  /**
+   * Get userID from AniList IP with AniList username
+   * @param username
+   * @returns {Promise<* | Promise<Response>>}
+   */
+  getUserIDFromUsername(username) {
+    return this.makeRequest(JSON.stringify({
+      query: apiQueries.getUserIDFromUsername(username),
+    })).then(async res => {
+      if (res.ok) {
+        const d = await res.json()
+        return d.data.User.id
+      } else {
+        console.error(res)
+        console.error('Failed to fetch ID from username')
+        return false
+      }
+    })
+  }
+
+  /**
+   * Get AniList user's watch activity
+   * @param userID
+   * @returns {Promise<* | Promise<Response>>}
+   */
+  async getUserWatchActivity(userID) {
+    return this.makeRequest(JSON.stringify({
+      query: apiQueries.getUserWatchHistory(userID),
+    })).then(async res => {
+      if (res.ok) {
+        const d = await res.json()
+        return d.data.Page
+      } else {
+        console.error(res)
+        console.error("Failed to fetch user activity history")
+        return false
+      }
+    })
+  }
+
+  /**
+   * Process watch history
+   * @param userID
+   * @param activities
+   * @returns {Promise<*[]>}
+   */
+  async processWatchActivity(userID, activities) {
+    const latestActivities = []
+
+    let redisData = await redis.get(config.redis.activities_key)
+
+    if (typeof redisData == "string") {
+      redisData = JSON.parse(redisData)
+    }
+    else redisData = []
+
+    const d = new Date();
+    d.setSeconds(d.getSeconds() - 120);
+
+    return Promise.all(activities.map(async activity => {
+      if (new Date(activity.createdAt * 1000) < d) return;
+
+      if (redisData.includes(activity.id)) return;
+
+      const embed = {
+        color: "#a0b1c5",
+        author: {
+          name: `${activity.user.name} ${activity.status}`,
+          icon_url: activity.user.avatar.large
+        },
+        title: `${activity.media.title.english} ${activity.media.title.romaji}`,
+        thumbnail: {
+          url: activity.media.coverImage.large
+        },
+        fields: []
+      }
+
+      if (activity.progress) {
+        embed.fields.push({
+          name: `Progress`,
+          value: activity.progress
+        })
+      }
+
+      latestActivities.push(embed)
+
+      redisData.push(activity.id)
+
+    })).then(async () => {
+
+      redisData = JSON.stringify(redisData)
+
+      redis.set(config.redis.activities_key, redisData, "PX", ms("1 hour"))
+
+      return latestActivities
+    })
+  }
+}
