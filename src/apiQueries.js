@@ -20,10 +20,10 @@ module.exports = {
         pageInfo { total currentPage lastPage hasNextPage perPage }
         activities(userId: ${userID}, sort:ID_DESC) {
           ... on ListActivity {
-            id user { id name avatar { large } } status type progress
+            id user { id name avatar { large } options { profileColor } } status type progress
             media { id coverImage {
               large
-            } title { romaji english native userPreferred } type }
+            } title { romaji english native userPreferred } type episodes chapters }
             createdAt isLocked isSubscribed isLiked replies { id text likeCount } likes { id name }
           }
         }

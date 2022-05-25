@@ -4,6 +4,7 @@ const ms = require('ms')
 const apiQueries = require('./../apiQueries')
 const redis = require('./Redis')
 
+
 /**
  * AniList API service
  * @type {AniList}
@@ -107,15 +108,20 @@ module.exports = class AniList {
 
       if (redisData.includes(activity.id)) return;
 
+      const user = activity.user
+
+      const media = activity.media
+      
       const embed = {
-        color: "#a0b1c5",
+        color: config.anilist.colors[user.options.profileColor] || user.options.profileColor,
         author: {
-          name: `${activity.user.name} ${activity.status}`,
-          icon_url: activity.user.avatar.large
+          name: `${user.name} ${activity.status}`,
+          icon_url: user.avatar.large
         },
-        title: `${activity.media.title.english} ${activity.media.title.romaji}`,
+        title: `${media.title.english}`,
+        description: ` ${media.title.romaji}`,
         thumbnail: {
-          url: activity.media.coverImage.large
+          url: media.coverImage.large
         },
         fields: []
       }
@@ -123,7 +129,7 @@ module.exports = class AniList {
       if (activity.progress) {
         embed.fields.push({
           name: `Progress`,
-          value: activity.progress
+          value: `${activity.progress} / ${media.episodes || media.chapters || "Unknown"}`
         })
       }
 
