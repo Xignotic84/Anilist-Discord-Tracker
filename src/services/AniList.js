@@ -141,7 +141,7 @@ module.exports = class AniList {
 
     })).then(async () => {
 
-      redisData.slice(0, 19)
+      redisData = redisData.slice(0, 19)
 
       redisData = JSON.stringify(redisData)
 
