@@ -100,6 +100,8 @@ module.exports = class AniList {
     }
     else redisData = []
 
+    console.log(redisData)
+
     const d = new Date();
     d.setSeconds(d.getSeconds() - 120);
 
@@ -111,7 +113,7 @@ module.exports = class AniList {
       const user = activity.user
 
       const media = activity.media
-      
+
       const embed = {
         color: config.anilist.colors[user.options.profileColor] || user.options.profileColor,
         author: {
@@ -135,9 +137,11 @@ module.exports = class AniList {
 
       latestActivities.push(embed)
 
-      redisData.push(activity.id)
+      redisData.unshift(activity.id)
 
     })).then(async () => {
+
+      redisData.slice(0, 19)
 
       redisData = JSON.stringify(redisData)
 
