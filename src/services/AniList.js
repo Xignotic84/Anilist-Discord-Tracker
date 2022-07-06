@@ -125,6 +125,9 @@ module.exports = class AniList {
         thumbnail: {
           url: media.coverImage.large
         },
+        footer: {
+          text: activity.id
+        },
         fields: []
       }
 
