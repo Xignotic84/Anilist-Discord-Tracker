@@ -100,15 +100,13 @@ module.exports = class AniList {
     }
     else redisData = []
 
-    console.log(redisData)
-
     const d = new Date();
     d.setSeconds(d.getSeconds() - 120);
 
     return Promise.all(activities.map(async activity => {
       if (new Date(activity.createdAt * 1000) < d) return;
 
-      if (redisData.includes(activity.id)) return;
+      if (redisData.includes(activity.id) || latestActivities.includes(activity.id)) return;
 
       const user = activity.user
 
