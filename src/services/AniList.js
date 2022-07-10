@@ -88,11 +88,8 @@ module.exports = class AniList {
    * Process watch history
    * @param userID
    * @param activities
-   * @returns {Promise<*[]>}
    */
   async processWatchActivity(userID, activities) {
-    const latestActivities = []
-
     let redisData = await redis.get(config.redis.activities_key)
 
     if (typeof redisData == "string") {
@@ -106,7 +103,7 @@ module.exports = class AniList {
     return Promise.all(activities.map(async activity => {
       if (new Date(activity.createdAt * 1000) < d) return;
 
-      if (redisData.includes(activity.id) || latestActivities.includes(activity.id)) return;
+      if (redisData.includes(activity.id)) return;
 
       const user = activity.user
 
@@ -136,8 +133,6 @@ module.exports = class AniList {
         })
       }
 
-      latestActivities.push(embed)
-
       redisData.unshift(activity.id)
 
     })).then(async () => {
@@ -147,8 +142,6 @@ module.exports = class AniList {
       redisData = JSON.stringify(redisData)
 
       redis.set(config.redis.activities_key, redisData, "PX", ms("1 hour"))
-
-      return latestActivities
     })
   }
 }
