@@ -121,6 +121,8 @@ module.exports = class AniList {
 
       const user = activity.user
 
+      if (!user) console.log(user)
+
       const media = activity.media
 
       const embed = {
