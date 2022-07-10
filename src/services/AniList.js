@@ -85,6 +85,19 @@ module.exports = class AniList {
   }
 
   /**
+   * Cache data into redis
+   * @param redisData
+   * @returns {Promise<void>}
+   */
+  async cacheData(redisData) {
+    redisData = redisData.slice(0, 19)
+
+    redisData = JSON.stringify(redisData)
+
+    redis.set(config.redis.activities_key, redisData, "PX", ms("1 hour"))
+  }
+
+  /**
    * Process watch history
    * @param userID
    * @param activities
@@ -99,8 +112,6 @@ module.exports = class AniList {
 
     const d = new Date();
     d.setSeconds(d.getSeconds() - 120);
-
-    console.log(activities)
 
     return Promise.all(activities.map(async activity => {
       if (new Date(activity.createdAt * 1000) < d) return;
@@ -139,11 +150,9 @@ module.exports = class AniList {
 
     })).then(async () => {
 
-      redisData = redisData.slice(0, 19)
+      await this.cacheData(redisData)
 
-      redisData = JSON.stringify(redisData)
-
-      redis.set(config.redis.activities_key, redisData, "PX", ms("1 hour"))
+      return redisData
     })
   }
 }
