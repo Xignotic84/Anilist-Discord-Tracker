@@ -21,6 +21,8 @@ module.exports = class AniList {
 
         if (!processedActivity[0]) return
 
+        console.log(processedActivity)
+
         client.channels.cache.get(config.discord.activity_channel_id).send({embeds: processedActivity})
       })
 
@@ -90,11 +92,11 @@ module.exports = class AniList {
    * @returns {Promise<void>}
    */
   async cacheData(redisData) {
-    redisData = redisData.slice(0, 19)
+    redisData = redisData.slice(0, 9)
 
     redisData = JSON.stringify(redisData)
 
-    redis.set(config.redis.activities_key, redisData, "PX", ms("1 hour"))
+    await redis.set(config.redis.activities_key, redisData, "PX", ms("1 hour"))
   }
 
   /**
@@ -103,6 +105,7 @@ module.exports = class AniList {
    * @param activities
    */
   async processWatchActivity(userID, activities) {
+    const embedsToSend = []
     let redisData = await redis.get(config.redis.activities_key)
 
     if (typeof redisData == "string") {
@@ -146,13 +149,14 @@ module.exports = class AniList {
         })
       }
 
+      embedsToSend.push(embed)
+
       redisData.unshift(activity.id)
 
     })).then(async () => {
-
       await this.cacheData(redisData)
 
-      return redisData
+      return embedsToSend
     })
   }
 }
