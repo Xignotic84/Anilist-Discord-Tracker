@@ -100,6 +100,8 @@ module.exports = class AniList {
     const d = new Date();
     d.setSeconds(d.getSeconds() - 120);
 
+    console.log(activities)
+
     return Promise.all(activities.map(async activity => {
       if (new Date(activity.createdAt * 1000) < d) return;
 
@@ -110,7 +112,7 @@ module.exports = class AniList {
       const media = activity.media
 
       const embed = {
-        color: config.anilist.colors[user.options.profileColor] || user.options.profileColor,
+        color: config.anilist.colors[user.options.profileColor] || user.options.profileColor || config.anilist.colors.default_blue,
         author: {
           name: `${user.name} ${activity.status}`,
           icon_url: user.avatar.large
