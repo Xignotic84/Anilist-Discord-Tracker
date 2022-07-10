@@ -21,8 +21,6 @@ module.exports = class AniList {
 
         if (!processedActivity[0]) return
 
-        console.log(processedActivity)
-
         client.channels.cache.get(config.discord.activity_channel_id).send({embeds: processedActivity})
       })
 
@@ -126,7 +124,7 @@ module.exports = class AniList {
       const media = activity.media
 
       const embed = {
-        color: config.anilist.colors[user.options.profileColor] || user.options.profileColor || config.anilist.colors.default_blue,
+        color: config.anilist.colors[user?.options?.profileColor] || user?.options?.profileColor || config.anilist.colors.default_blue,
         author: {
           name: `${user.name} ${activity.status}`,
           icon_url: user.avatar.large
