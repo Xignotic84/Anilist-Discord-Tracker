@@ -121,7 +121,7 @@ module.exports = class AniList {
 
       const user = activity.user
 
-      if (!user) console.log(user)
+      console.log(activity)
 
       const media = activity.media
 
