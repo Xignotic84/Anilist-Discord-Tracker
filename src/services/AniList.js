@@ -16,8 +16,8 @@ module.exports = class AniList {
 
       users.map(async user => {
         const watchActivity = await this.getUserWatchActivity(user.id)
-
-        if (!watchActivity[0]) return
+        
+        if (!watchActivity?.activities[0]) return
 
         const processedActivity = await this.processWatchActivity(user.id, watchActivity.activities)
 
