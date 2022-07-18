@@ -116,16 +116,10 @@ module.exports = class AniList {
     const d = new Date();
     d.setSeconds(d.getSeconds() - 120);
 
-    return Promise.all(activities.map(async activity => {
+    return Promise.all(activities.filter(a => a && !redisData.includes(a.id)).map(async activity => {
       if (new Date(activity.createdAt * 1000) < d) return;
 
-      if (redisData.includes(activity.id)) return;
-      console.log(redisData)
-
       const user = activity.user
-
-      if (!user) return console.log(user, activity)
-
 
       const media = activity.media
 
