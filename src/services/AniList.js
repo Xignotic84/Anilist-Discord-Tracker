@@ -121,6 +121,8 @@ module.exports = class AniList {
 
       const user = activity.user
 
+      if (!user) return
+
       const media = activity.media
 
       const embed = {
@@ -140,7 +142,7 @@ module.exports = class AniList {
       if (activity.progress) {
         embed.fields.push({
           name: `Progress`,
-          value: `${activity.progress} /   ${media.episodes || media.chapters || ''}`
+          value: `${activity.progress} / ${ media.episodes || media.chapters || ''}`
         })
       }
 
