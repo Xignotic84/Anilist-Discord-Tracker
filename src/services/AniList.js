@@ -16,7 +16,7 @@ module.exports = class AniList {
 
       users.map(async user => {
         const watchActivity = await this.getUserWatchActivity(user.id)
-        
+
         if (!watchActivity?.activities[0]) return
 
         const processedActivity = await this.processWatchActivity(user.id, watchActivity.activities)
@@ -120,6 +120,7 @@ module.exports = class AniList {
       if (new Date(activity.createdAt * 1000) < d) return;
 
       if (redisData.includes(activity.id)) return;
+      console.log(redisData)
 
       const user = activity.user
       
@@ -136,16 +137,13 @@ module.exports = class AniList {
         thumbnail: {
           url: media.coverImage.large
         },
-        footer: {
-          text: activity.id
-        },
         fields: []
       }
 
       if (activity.progress) {
         embed.fields.push({
           name: `Progress`,
-          value: `${activity.progress} / ${media.episodes || media.chapters || "Unknown"}`
+          value: `${activity.progress} /   ${media.episodes || media.chapters || ''}`
         })
       }
 
