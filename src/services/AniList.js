@@ -123,7 +123,9 @@ module.exports = class AniList {
       console.log(redisData)
 
       const user = activity.user
-      
+
+      if (user) console.log(user)
+
       const media = activity.media
 
       const embed = {
