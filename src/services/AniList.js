@@ -119,7 +119,11 @@ module.exports = class AniList {
     return Promise.all(activities.filter(a => a && !redisData.includes(a.id)).map(async activity => {
       if (new Date(activity.createdAt * 1000) < d) return;
 
+      redisData.unshift(activity.id)
+
       const user = activity.user
+
+      console.log(activity.id, redisData)
 
       if (!user) return
 
@@ -147,8 +151,6 @@ module.exports = class AniList {
       }
 
       embedsToSend.push(embed)
-
-      redisData.unshift(activity.id)
 
     })).then(async () => {
       await this.cacheData(redisData)
