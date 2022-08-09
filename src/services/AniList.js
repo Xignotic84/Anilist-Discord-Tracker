@@ -116,8 +116,8 @@ module.exports = class AniList {
     const d = new Date();
     d.setSeconds(d.getSeconds() - 120);
 
-    return Promise.all(activities.filter(a => a && !redisData.includes(a.id)).map(async activity => {
-      if (new Date(activity.createdAt * 1000) < d) return;
+    return Promise.all(activities.filter(a => a.id && !redisData.includes(a.id)).map(async activity => {
+      if (new Date(activity.createdAt * 1000) < d || !activity.id) return;
 
       redisData.unshift(activity.id)
 
