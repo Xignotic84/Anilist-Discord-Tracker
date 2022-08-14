@@ -23,10 +23,6 @@ module.exports = class AniList {
 
         if (!processedActivity || !processedActivity[0]) return
 
-        if (processedActivity.length > 10) {
-          processedActivity = processedActivity.slice(0, 10)
-        }
-
         client.channels.cache.get(config.discord.activity_channel_id).send({embeds: processedActivity})
       })
 
@@ -110,7 +106,7 @@ module.exports = class AniList {
   async fetchData() {
     let redisData
 
-    redisData = await redis.get(config.redis.activiity_key)
+    redisData = await redis.get(config.redis.activities_key)
 
     if (typeof redisData == "string") {
       redisData = JSON.parse(redisData)
@@ -135,7 +131,6 @@ module.exports = class AniList {
     const activeActivities = activities.filter(a => !(new Date(a.createdAt * 1000) < d) && !redisData.includes(a.id))
 
     if (!activeActivities[0]) return
-
 
     return Promise.all(activeActivities.map(async activity => {
       if (!activity.id) return
