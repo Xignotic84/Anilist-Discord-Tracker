@@ -19,9 +19,13 @@ module.exports = class AniList {
 
         if (!watchActivity?.activities[0]) return
 
-        const processedActivity = await this.processWatchActivity(user.id, watchActivity.activities)
+        let processedActivity = await this.processWatchActivity(watchActivity.activities)
 
-        if (!processedActivity[0]) return
+        if (!processedActivity || !processedActivity[0]) return
+
+        if (processedActivity.length > 10) {
+          processedActivity = processedActivity.slice(0, 10)
+        }
 
         client.channels.cache.get(config.discord.activity_channel_id).send({embeds: processedActivity})
       })
@@ -96,34 +100,49 @@ module.exports = class AniList {
 
     redisData = JSON.stringify(redisData)
 
-    await redis.set(config.redis.activities_key, redisData, "PX", ms("1 hour"))
+    await redis.set(config.redis.activities_key, redisData, "PX", ms("30 minutes"))
   }
 
   /**
-   * Process watch history
-   * @param userID
-   * @param activities
+   * Fetch watch activity keys from Redis
+   * @returns {Promise<awaited ResultTypes<string, Context>[Context["type"]]|*[]>}
    */
-  async processWatchActivity(userID, activities) {
-    const embedsToSend = []
-    let redisData = await redis.get(config.redis.activities_key)
+  async fetchData() {
+    let redisData
+
+    redisData = await redis.get(config.redis.activiity_key)
 
     if (typeof redisData == "string") {
       redisData = JSON.parse(redisData)
     }
-    else redisData = []
+
+    return redisData || []
+  }
+
+
+
+  /**
+   * Process watch history
+   * @param activities
+   */
+  async processWatchActivity(activities) {
+    const embedsToSend = []
+    let redisData = await this.fetchData()
 
     const d = new Date();
     d.setSeconds(d.getSeconds() - 120);
 
-    return Promise.all(activities.filter(a => a.id && !redisData.includes(a.id)).map(async activity => {
-      if (new Date(activity.createdAt * 1000) < d || !activity.id) return;
+    const activeActivities = activities.filter(a => !(new Date(a.createdAt * 1000) < d) && !redisData.includes(a.id))
+
+    if (!activeActivities[0]) return
+
+
+    return Promise.all(activeActivities.map(async activity => {
+      if (!activity.id) return
 
       redisData.unshift(activity.id)
 
       const user = activity.user
-
-      console.log(activity.id, redisData)
 
       if (!user) return
 
@@ -143,10 +162,12 @@ module.exports = class AniList {
         fields: []
       }
 
+      const progress = (media.episodes || media.chapters) ? `/ ${media.episodes || media.chapters}` : ''
+
       if (activity.progress) {
         embed.fields.push({
           name: `Progress`,
-          value: `${activity.progress} / ${ media.episodes || media.chapters || ''}`
+          value: `${activity.progress} ${progress}`
         })
       }
 
